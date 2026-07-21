@@ -1,0 +1,63 @@
+name: Codex implementation task
+description: Approved implementation task that can be dispatched to Codex.
+title: "[codex] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Only the repository owner should create or approve these tasks. Creating an issue whose title begins with `[codex]` triggers the Codex workflow after this setup is merged.
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: State the exact behavior to add, remove, or fix.
+      placeholder: Describe the desired result, not only the implementation idea.
+    validations:
+      required: true
+
+  - type: textarea
+    id: rules
+    attributes:
+      label: Strategy and business rules
+      description: Define formulas, thresholds, timeframes, data sources, and edge cases precisely.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List observable conditions that must be true before the task is considered complete.
+      placeholder: |
+        - [ ] Existing tests pass
+        - [ ] New behavior has deterministic tests
+        - [ ] No live-order capability is introduced
+    validations:
+      required: true
+
+  - type: textarea
+    id: forbidden
+    attributes:
+      label: Forbidden changes
+      description: Identify modules, settings, APIs, or behaviors that must not be changed.
+      placeholder: Do not modify live deployment, secrets, private OKX APIs, or main directly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Required validation
+      description: Add task-specific tests or commands beyond the standard compile and pytest checks.
+
+  - type: checkboxes
+    id: approval
+    attributes:
+      label: Approval
+      options:
+        - label: The strategy and acceptance criteria are finalized and this task is ready for Codex implementation.
+          required: true
+        - label: This task must not place trades, access private account APIs, expose secrets, or merge directly into main.
+          required: true
