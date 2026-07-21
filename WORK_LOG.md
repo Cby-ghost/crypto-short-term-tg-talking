@@ -42,3 +42,9 @@
 - 報告沿用既有通知出口：兩項 Telegram 憑證齊全時發 Telegram，否則輸出到 Codex／終端；不會下單或修改策略。
 - 新增報告格式與最新資料列測試；`python -m compileall -q src tests` 通過，`pytest -q` 為 28 passed。
 - 已建立 Codex 本機排程「BTC／ETH／SOL 四小時盤面報告」，每天台北時間 00:00、04:00、08:00、12:00、16:00、20:00 執行報告指令。
+
+## 2026-07-21 — GitHub 發布
+
+- 初始化 Git 專案並推送至 `Cby-ghost/Connect-GPT-codeX` 的 `main` 分支。
+- 僅提交原始碼、測試、文件及設定範例；`.env`、實際 `config.yaml`、SQLite 資料、虛擬環境與快取均由 `.gitignore` 排除。
+- 驗證：推送前 `pytest -q` 為 28 passed，遠端追蹤分支已建立。
