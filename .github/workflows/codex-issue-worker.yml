@@ -1,0 +1,135 @@
+name: Codex Issue Worker
+
+on:
+  issues:
+    types: [opened, reopened]
+
+concurrency:
+  group: codex-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  implement:
+    if: >-
+      startsWith(github.event.issue.title, '[codex]') &&
+      (github.actor == 'Cby-ghost' || github.actor == 'chatgpt-codex-connector[bot]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    env:
+      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      ISSUE_TITLE: ${{ github.event.issue.title }}
+      ISSUE_BODY: ${{ github.event.issue.body }}
+      BRANCH_NAME: codex/issue-${{ github.event.issue.number }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install project and test dependencies
+        run: python -m pip install -e '.[dev]'
+
+      - name: Prepare isolated task branch
+        shell: bash
+        run: |
+          git config user.name 'codex-issue-worker[bot]'
+          git config user.email 'codex-issue-worker[bot]@users.noreply.github.com'
+          git switch -C "$BRANCH_NAME" origin/main
+
+      - name: Implement issue with Codex
+        id: codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          sandbox: workspace-write
+          safety-strategy: drop-sudo
+          allow-users: Cby-ghost
+          allow-bot-users: chatgpt-codex-connector[bot]
+          effort: high
+          prompt: |
+            Implement GitHub issue #${{ github.event.issue.number }} in this repository.
+
+            ISSUE TITLE
+            ${{ github.event.issue.title }}
+
+            ISSUE BODY
+            ${{ github.event.issue.body }}
+
+            REQUIREMENTS
+            - Follow AGENTS.md and all repository documentation.
+            - Inspect existing code before editing.
+            - Implement only the requested scope.
+            - Add or update deterministic tests.
+            - Do not access secrets or production credentials.
+            - Do not modify files under .github/workflows/.
+            - Do not commit, push, open a pull request, merge, deploy, or place real trades.
+            - Leave all intended source and test changes in the working tree.
+            - Before finishing, run python -m pytest -q and report any limitations.
+
+      - name: Disable repository hooks after agent execution
+        shell: bash
+        run: git config core.hooksPath /dev/null
+
+      - name: Validate changed-file boundaries
+        shell: bash
+        run: |
+          CHANGED_FILES="$({ git diff --name-only; git ls-files --others --exclude-standard; } | sort -u)"
+          printf '%s\n' "$CHANGED_FILES"
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo 'Codex produced no file changes.' >&2
+            exit 1
+          fi
+
+          if printf '%s\n' "$CHANGED_FILES" | grep -E '(^|/)(\.env($|\.)|config\.ya?ml$|credentials|secrets|data/|logs/)|(^|/)\.github/workflows/|\.(pem|key|p12|pfx|jks|db|sqlite|sqlite3)$'; then
+            echo 'A prohibited or sensitive file was changed.' >&2
+            exit 1
+          fi
+
+      - name: Run test suite
+        run: python -m pytest -q
+
+      - name: Commit and push task branch
+        shell: bash
+        run: |
+          git add -A
+          git commit -m "Implement issue #${ISSUE_NUMBER} with Codex"
+          git push --force-with-lease origin "$BRANCH_NAME"
+
+      - name: Open pull request and report to issue
+        shell: bash
+        run: |
+          CLEAN_TITLE="${ISSUE_TITLE#\[codex\] }"
+          cat > /tmp/pr-body.md <<EOF
+          ## Automated Codex implementation
+
+          Implements #${ISSUE_NUMBER}.
+
+          ### Validation
+          - Codex followed repository-level `AGENTS.md` instructions.
+          - Sensitive and workflow file boundaries were checked.
+          - `python -m pytest -q` passed before this PR was opened.
+
+          ### Required human review
+          This PR is not automatically merged or deployed. Review strategy behavior, API handling, alert semantics, and test coverage before merging.
+
+          Closes #${ISSUE_NUMBER}
+          EOF
+
+          PR_URL="$(gh pr create --base main --head "$BRANCH_NAME" --title "Codex: $CLEAN_TITLE" --body-file /tmp/pr-body.md)"
+          gh issue comment "$ISSUE_NUMBER" --body "Codex completed the implementation and opened a pull request: $PR_URL"
