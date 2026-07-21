@@ -48,3 +48,8 @@
 - 初始化 Git 專案並推送至 `Cby-ghost/Connect-GPT-codeX` 的 `main` 分支。
 - 僅提交原始碼、測試、文件及設定範例；`.env`、實際 `config.yaml`、SQLite 資料、虛擬環境與快取均由 `.gitignore` 排除。
 - 驗證：推送前 `pytest -q` 為 28 passed，遠端追蹤分支已建立。
+
+## 2026-07-21 — Repository 更名
+
+- 依使用者要求刪除舊的 GitHub repository，並重新建立 `Cby-ghost/crypto-short-term-tg-talking`。
+- 本機 `origin` 已更新至新 repository，`main` 分支與完整專案歷史均已重新推送。
