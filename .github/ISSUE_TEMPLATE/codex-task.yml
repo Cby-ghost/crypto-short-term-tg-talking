@@ -1,0 +1,58 @@
+name: Codex implementation task
+description: Create a reviewed task that automatically dispatches Codex.
+title: "[codex] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Issues opened with the `[codex]` prefix by the repository owner trigger the Codex worker after the workflow is installed and `OPENAI_API_KEY` is configured.
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: State the observable outcome, not only the implementation idea.
+      placeholder: What should change for the user or system?
+    validations:
+      required: true
+
+  - type: textarea
+    id: rules
+    attributes:
+      label: Business and strategy rules
+      description: Define calculations, thresholds, timing, data sources, and edge cases precisely.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and exclusions
+      description: List what Codex may change and what must remain untouched.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Provide testable conditions for completion.
+      placeholder: |
+        - Given ..., when ..., then ...
+        - Existing tests continue to pass.
+    validations:
+      required: true
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks and operational notes
+      description: Include market-data limitations, notification risks, backward compatibility, or deployment constraints.
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Dispatch confirmation
+      options:
+        - label: I confirm this specification is ready for Codex implementation and must not deploy or place real trades automatically.
+          required: true
