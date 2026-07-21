@@ -1,0 +1,48 @@
+symbols:
+  - BTC-USDT-SWAP
+  - ETH-USDT-SWAP
+  - SOL-USDT-SWAP
+
+# 主訊號週期；第一版固定使用 15m 已收 K 線。
+timeframe: 15m
+scan_interval_seconds: 60
+cvd_window_minutes: 15
+cvd_stale_after_seconds: 30
+alert_cooldown_minutes: 60
+confirmation_scans: 2
+signal_log_path: data/signal_history.sqlite3
+
+strategy:
+  ema_fast: 20
+  ema_slow: 50
+  ema_min_separation_pct: 0.02
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  atr_period: 14
+  atr_stop_multiple: 1.5
+  # 總分 >= +4 推播偏多；<= -4 推播偏空。
+  signal_threshold: 4
+  strong_signal_threshold: 5
+  minimum_cvd_ratio: 0.03
+  minimum_oi_change_pct: 0.10
+  volume_spike_ratio: 1.20
+  max_abs_funding_rate: 0.0008
+  pivot_left_bars: 3
+  pivot_right_bars: 2
+  divergence_min_separation_bars: 5
+  divergence_max_separation_bars: 40
+  divergence_min_price_atr: 0.1
+  divergence_min_macd_difference: 0.0
+  divergence_expiry_bars: 3
+  divergence_stop_atr_buffer: 0.2
+  risk_reward_ratio: 1.0
+
+# 填 0 時只顯示進場、停損、止盈，不估算下單數量。
+risk:
+  account_equity_usdt: 0
+  risk_per_trade_pct: 1.0
+  fee_rate_pct: 0.05
+  slippage_pct: 0.02
+  minimum_cost_adjusted_rr: 0.5
+  max_stop_distance_pct: 5.0
